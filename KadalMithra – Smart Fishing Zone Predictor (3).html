@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KadalMithra – Smart Fishing Zone Predictor</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#031a2e;--bg2:#06304f;--card:rgba(255,255,255,.07);--tx:#e8f6ff;--mu:#8fb6cf;--ac:#2de2c8;--gd:#ffc857;--ok:#2de27a;--wa:#ffb020;--dg:#ff4d5e;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-family:Poppins,system-ui,sans-serif}
+header{position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;z-index:20;display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 16px;background:linear-gradient(#031a2eee,#031a2e00);flex-wrap:wrap}
+.logo{font-family:Cinzel,serif;font-weight:800;letter-spacing:2px;color:var(--ac)}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{border:1px solid #2de2c855;background:#0006;color:var(--tx);padding:5px 12px;border-radius:99px;font-size:12px;cursor:pointer;font-family:inherit}
+.pill.on{background:var(--ac);color:#032;font-weight:600}
+.deck{height:100%;display:flex;transition:transform .8s cubic-bezier(.7,0,.2,1)}
+.slide{min-width:100vw;height:100%;padding:76px 5vw 70px;overflow-y:auto;position:relative;background:radial-gradient(circle at 70% 20%,var(--bg2),var(--bg))}
+h2{font-family:Cinzel,serif;font-size:clamp(22px,3.4vw,36px);margin-bottom:4px}
+.sub{color:var(--mu);font-size:14px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid #ffffff18;border-radius:18px;padding:16px;backdrop-filter:blur(8px)}
+.grid{display:grid;gap:16px;grid-template-columns:1fr 1fr}
+@media(max-width:800px){.grid{grid-template-columns:1fr}.slide{min-width:100vw}}
+/* intro */
+.intro{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;overflow:hidden;background:linear-gradient(#0a4c78 0%,#06304f 45%,#021525 100%)}
+.sun{position:absolute;top:12%;width:150px;height:150px;border-radius:50%;background:radial-gradient(#ffe9a8,#ffb347 60%,#ff7b3a);box-shadow:0 0 120px 40px #ff9a4a66;animation:rise 3s ease-out}
+@keyframes rise{from{transform:translateY(120px);opacity:0}}
+.intro h1{font-family:Cinzel,serif;font-size:clamp(46px,11vw,130px);letter-spacing:6px;z-index:2;background:linear-gradient(90deg,#fff,var(--ac),var(--gd),#fff);background-size:300%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 6s linear infinite,fade 2s}
+@keyframes shine{to{background-position:300%}}@keyframes fade{from{opacity:0;letter-spacing:30px}}
+.ml{z-index:2;font-size:clamp(20px,3vw,32px);color:var(--gd);margin-top:4px}
+.tag{z-index:2;margin:14px 20px 26px;color:#cfeaff;font-weight:300;max-width:560px}
+.btn{z-index:2;background:linear-gradient(90deg,var(--ac),#3aa8ff);color:#022;border:0;padding:13px 30px;border-radius:99px;font-weight:600;font-size:16px;cursor:pointer;font-family:inherit;box-shadow:0 8px 30px #2de2c855}
+.btn:hover{transform:translateY(-2px)}
+.waves{position:absolute;bottom:0;left:0;width:200%;height:30%}
+.waves path{animation:wv 9s linear infinite}.waves .w2{animation-duration:6s;animation-direction:reverse}
+@keyframes wv{to{transform:translateX(-50%)}}
+.boat{position:absolute;bottom:20%;font-size:60px;z-index:3;animation:sail 16s linear infinite}
+@keyframes sail{from{left:-10%;transform:rotate(-4deg)}50%{transform:rotate(4deg)}to{left:105%;transform:rotate(-4deg)}}
+.fish{position:absolute;font-size:26px;opacity:.7;animation:swim 14s linear infinite}
+@keyframes swim{from{left:110%}to{left:-10%}}
+/* map */
+.map{background:#04476f;border-radius:18px;overflow:hidden;position:relative}
+svg text{font-family:Poppins}
+.zone{cursor:pointer}
+.pulse{animation:pl 2s infinite;transform-box:fill-box;transform-origin:center}
+@keyframes pl{50%{transform:scale(1.25);opacity:.6}}
+.chip{padding:3px 12px;border-radius:99px;font-size:12px;font-weight:600;color:#021}
+.safe{background:var(--ok)}.caution{background:var(--wa)}.danger{background:var(--dg);color:#fff}
+.bar{height:12px;border-radius:9px;background:#ffffff1c;overflow:hidden;margin:3px 0 10px}
+.bar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#3aa8ff,var(--ac));transition:width .8s}
+.row{display:flex;justify-content:space-between;font-size:13px}
+.stat{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;text-align:center}
+.stat div{background:#0004;border-radius:12px;padding:8px 2px;font-size:12px;color:var(--mu)}.stat b{display:block;color:#fff;font-size:17px}
+input,select{width:100%;padding:11px;border-radius:12px;border:1px solid #2de2c855;background:#0007;color:#fff;font-family:inherit;margin-bottom:10px}
+.b2{background:#ffffff14;border:1px solid #ffffff30;color:#fff;border-radius:12px;padding:9px 14px;cursor:pointer;font-family:inherit;margin:4px 4px 0 0}
+.b2:hover{background:#ffffff28}
+.li{display:flex;gap:10px;align-items:center;padding:9px 12px;background:#0004;border-radius:12px;margin-bottom:7px;font-size:14px;animation:fade 0.5s}
+.no{width:26px;height:26px;border-radius:50%;background:var(--ac);color:#022;display:grid;place-items:center;font-weight:700;font-size:13px}
+.alert{background:#ff4d5e22;border:1px solid var(--dg);border-radius:14px;padding:12px;margin-bottom:10px;animation:blink 1.2s infinite}
+@keyframes blink{50%{background:#ff4d5e55}}
+.nav{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom,0px));left:0;right:0;z-index:20;display:flex;justify-content:center;gap:14px;align-items:center}
+.dot{width:11px;height:11px;border-radius:50%;background:#fff4;cursor:pointer;transition:.3s}.dot.on{background:var(--ac);width:34px;border-radius:9px}
+.ar{background:#0007;border:1px solid #fff3;color:#fff;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:18px}
+#toast{position:fixed;top:64px;left:50%;transform:translate(-50%,-150px);z-index:50;background:var(--dg);color:#fff;padding:12px 22px;border-radius:14px;font-weight:600;transition:.5s;max-width:92vw;text-align:center}
+#toast.show{transform:translate(-50%,0)}
+.hide{display:none}.x{margin-left:auto;background:#ff4d5e33;border:1px solid var(--dg);color:#fff;border-radius:8px;cursor:pointer;padding:2px 8px}.rt{animation:dash 1s linear infinite}@keyframes dash{to{stroke-dashoffset:-22}}
+</style></head><body>
+<header><div class="logo">⚓ KADALMITHRA</div><div class="pills" id="pills"></div></header>
+<div id="toast"></div>
+
+<div class="deck" id="deck">
+<!-- 1 INTRO -->
+<section class="slide intro">
+ <div class="sun"></div>
+ <span class="fish" style="top:55%;animation-delay:0s">🐟</span><span class="fish" style="top:68%;animation-delay:5s;font-size:34px">🐠</span><span class="fish" style="top:78%;animation-delay:9s">🐟</span>
+ <h1>KadalMithra</h1>
+ <div class="ml">Friend of the Sea</div>
+ <p class="tag">Smart fishing zone prediction for Kerala's fishermen — find the fish faster, burn less fuel, sail safer.</p>
+ <button class="btn" onclick="go(1)">Set Sail ⛵</button>
+ <div class="boat">⛵</div>
+ <svg class="waves" viewBox="0 0 1200 200" preserveAspectRatio="none"><path class="w2" d="M0 80 Q150 20 300 80 T600 80 T900 80 T1200 80 T1500 80 T1800 80 T2400 80 V200 H0Z" fill="#0b6fa3aa"/><path d="M0 110 Q150 60 300 110 T600 110 T900 110 T1200 110 T1500 110 T1800 110 T2400 110 V200 H0Z" fill="#021a30"/></svg>
+</section>
+
+<!-- 2 MAP -->
+<section class="slide">
+ <h2>Predicted Fishing Zones</h2><p class="sub">Kerala coast live map — tap a zone. Green glow = high fish probability, red hatch = danger.</p>
+ <div class="grid">
+  <div class="map"><svg id="map" viewBox="0 0 400 620" style="width:100%;max-height:68vh;overflow:visible"></svg></div>
+  <div class="card" id="zinfo"></div>
+ </div>
+</section>
+
+<!-- 3 FISH DATA -->
+<section class="slide">
+ <h2>Fish Data &amp; Ocean Intelligence</h2><p class="sub">Expected catch for the selected zone and time of day (demo model values).</p>
+ <div class="grid">
+  <div class="card"><h3 id="fz"></h3><div id="fsp"></div></div>
+  <div class="card"><h3>Satellite &amp; Ocean Inputs</h3><div class="stat" id="fst"></div>
+   <p class="sub" style="margin-top:14px">Best fishing window for this zone</p><div id="best"></div>
+   <p class="sub" style="margin-top:14px">Fuel saving vs. random search</p><div class="bar"><i id="fuel"></i></div><div class="row"><span>Estimated saving</span><b id="fuelt"></b></div></div>
+ </div>
+</section>
+
+<!-- 4 BOATS -->
+<section class="slide">
+ <h2>Boat Registry &amp; Tracking</h2><p class="sub">Register your boat for a zone, then launch boats in order. Boats at sea show on the map.</p>
+ <div class="grid">
+  <div class="card">
+   <label class="sub">Fishing zone (destination)</label><select id="bz"></select><label class="sub">Departure harbour</label><select id="bh"></select>
+   <input id="bn" placeholder="Boat name e.g. Matha, Sea Queen" maxlength="24">
+   <input id="bp" type="number" min="1" placeholder="Insert at position in line (optional)"><button class="btn" style="width:100%" onclick="addBoat()">➕ Insert Boat</button>
+   <div style="margin-top:10px"><button class="b2" onclick="launch()">🚀 Launch next boat</button><button class="b2" onclick="undo()">↩ Undo last action</button><button class="b2" onclick="recall()">📡 Recall latest boat</button></div>
+   <h3 style="margin:16px 0 8px">⛵ At Sea</h3><div id="sea"></div>
+  </div>
+  <div class="card"><h3 style="margin-bottom:10px">Launch Order — <span id="qz"></span></h3><div id="q"></div><h3 style="margin:16px 0 8px">📜 Recent Activity</h3><div id="lg"></div></div>
+ <div class="card" style="grid-column:1/-1"><h3>🧭 Live Tracking &amp; Fastest Safe Routes</h3><p class="sub">Teal dashed = safe fastest route • Red dotted = direct path blocked by a danger zone • Gold dotted = boats waiting at harbour</p><div class="map"><svg id="map2" viewBox="0 0 400 620" style="width:100%;height:62vh;overflow:visible"></svg></div><div id="rt" style="margin-top:12px"></div></div>
+ </div>
+</section>
+
+<!-- 5 SAFETY -->
+<section class="slide">
+ <h2>Weather &amp; Safety Alerts</h2><p class="sub">Wind, wave and current conditions for every zone at the selected time.</p>
+ <div id="alerts"></div><div class="card" style="margin-bottom:14px"><div class="row"><h3>📣 Warning Board</h3><button class="b2" onclick="ack()">✔ Acknowledge next</button></div><div id="wq" style="margin-top:8px"></div></div>
+ <div class="grid" id="wx" style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr))"></div>
+</section>
+</div>
+
+<div class="nav"><button class="ar" onclick="go(cur-1)">‹</button><div id="dots" style="display:flex;gap:8px"></div><button class="ar" onclick="go(cur+1)">›</button></div>
+
+<script>
+const Z=[{n:"Kannur",y:70},{n:"Beypore",y:170},{n:"Kochi",y:280},{n:"Alappuzha",y:385},{n:"Kollam",y:485},{n:"Vizhinjam",y:570}];
+const T=["Dawn 5–8","Day 8–16","Dusk 16–19","Night 19–5"];
+const SP=["Sardine (Mathi)","Mackerel (Ayala)","Kingfish (Neymeen)","Pomfret (Avoli)","Tuna (Choora)","Anchovy (Nethili)","Squid (Kanava)","Prawn (Chemmeen)","Seer (Aykkoora)"];
+let cur=0,t=0,sel=2;
+const Q=Z.map(()=>[]),sea=[],hist=[];
+const h=(a,b)=>Math.abs(Math.sin(a*12.9898+b*78.233));
+function D(z,ti){const p=Math.round(35+62*h(z+1,ti+2)),wind=Math.round(7+16*h(z+3,ti+1)),wave=+(0.6+2.9*h(z+2,ti+5)).toFixed(1);
+ const st=wave>2.5||wind>20?"danger":(wave>1.7||wind>15?"caution":"safe");
+ const sp=SP.map((s,i)=>({s,v:Math.round(100*h(z+i,ti+i*2))})).sort((a,b)=>b.v-a.v).slice(0,5);
+ return{p,wind,wave,st,sst:+(27+3*h(z,ti+7)).toFixed(1),chl:+(0.3+2.2*h(z+4,ti+3)).toFixed(2),cur:+(0.2+1.1*h(z+6,ti)).toFixed(1),sp,dir:["NW","W","SW","WNW"][Math.floor(h(z,ti+9)*4)]}}
+const $=id=>document.getElementById(id);
+const lab={safe:"SAFE",caution:"CAUTION",danger:"DANGER"};
+function go(i){cur=Math.max(0,Math.min(4,i));$("deck").style.transform=`translateX(-${cur*100}vw)`;dots()}
+function dots(){$("dots").innerHTML=[0,1,2,3,4].map(i=>`<div class="dot ${i==cur?'on':''}" onclick="go(${i})"></div>`).join("")}
+function toast(m){const e=$("toast");e.textContent=m;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),4500)}
+function pills(){$("pills").innerHTML=T.map((x,i)=>`<button class="pill ${i==t?'on':''}" onclick="t=${i};render(true)">${x}</button>`).join("")}
+const cs=[[270,0],[255,100],[232,200],[196,300],[165,400],[140,500],[115,620]];
+const cX=y=>{for(let i=1;i<7;i++)if(y<=cs[i][1]){const a=cs[i-1],b=cs[i];return a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1])}return 115};
+const H=["Thalassery","Beypore","Kochi","Alappuzha","Azhikkal","Neendakara","Vizhinjam"],HY=[70,170,280,385,435,485,570],zh=[0,1,2,3,5,6];
+const hp=i=>[cX(HY[i])-3,HY[i]],zp=i=>[cX(Z[i].y)-85,Z[i].y],zr=i=>22+D(i,t).p/6;
+function blob(x,y,r,sd){const n=10,p=[];for(let k=0;k<n;k++){const a=k/n*6.283,q=r*(.8+.4*h(sd,k+1));p.push([x+q*Math.cos(a),y+q*Math.sin(a)])}const m=(a,b)=>[(a[0]+b[0])/2,(a[1]+b[1])/2];let d="M"+m(p[n-1],p[0]);for(let i=0;i<n;i++)d+=`Q${p[i]} ${m(p[i],p[(i+1)%n])}`;return d+"Z"}
+const eta=d=>{const m=Math.round(d/8*60);return Math.floor(m/60)+"h "+m%60+"m"};
+function hit(a,b,c,r){const dx=b[0]-a[0],dy=b[1]-a[1],u=Math.max(0,Math.min(1,((c[0]-a[0])*dx+(c[1]-a[1])*dy)/(dx*dx+dy*dy)));return Math.hypot(a[0]+u*dx-c[0],a[1]+u*dy-c[1])<r}
+function route(h,z){const A=hp(h),B=zp(z);let p=[A],c=A,det=[];
+ Z.map((_,i)=>i).filter(i=>i!=z&&D(i,t).st=="danger").sort((a,b)=>Math.hypot(zp(a)[0]-A[0],zp(a)[1]-A[1])-Math.hypot(zp(b)[0]-A[0],zp(b)[1]-A[1])).forEach(i=>{const C=zp(i),R=zr(i)+12;
+  if(hit(c,B,C,R)){const dx=B[0]-c[0],dy=B[1]-c[1],L=Math.hypot(dx,dy),n=[-dy/L,dx/L];
+   const W=[[C[0]+n[0]*(R+6),C[1]+n[1]*(R+6)],[C[0]-n[0]*(R+6),C[1]-n[1]*(R+6)]].sort((a,b)=>a[0]-b[0])[0];p.push(W);c=W;det.push(Z[i].n)}});
+ p.push(B);let d=0;for(let i=1;i<p.length;i++)d+=Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]);
+ return{p,A,B,d:d*.5,dd:Math.hypot(B[0]-A[0],B[1]-A[1])*.5,det:det.length?det:null,path:"M"+p.map(q=>q.join(",")).join("L")}}
+function map(id){const cp=cs.map(p=>p.join(",")).join("L");
+ let s=`<defs><pattern id="hz" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="4" height="8" fill="#ff4d5e88"/></pattern></defs>
+<path d="M${cp}L3000,620L3000,0Z" fill="#2b5a3a"/><path d="M${cp}" stroke="#ffe9a8" stroke-width="4" fill="none" stroke-linejoin="round"/>
+<text x="330" y="300" fill="#bfe8c8" font-size="16" text-anchor="middle" opacity=".7">KERALA</text><text x="12" y="22" fill="#ffffff77" font-size="12">ARABIAN SEA</text>`;
+ Z.forEach((z,i)=>{const d=D(i,t),[x,y]=zp(i),r0=zr(i),r=d.st=="danger"?.01:r0,col=d.p>70?"#2de27a":d.p>50?"#ffc857":"#7fb2d4";
+  s+=`<g class="zone" onclick="sel=${i};render()"><circle cx="${x}" cy="${y}" r="${r+8}" fill="${col}" opacity=".18" class="pulse"/><circle cx="${x}" cy="${y}" r="${r}" fill="${col}" fill-opacity=".35" stroke="${i==sel?'#fff':col}" stroke-width="${i==sel?3.5:1.5}"/>
+  ${d.st=="danger"?`<path d="${blob(x,y,r0+16,i+t*7)}" fill="#ff4d5e" fill-opacity=".3" stroke="#ff4d5e" stroke-width="2.5" stroke-dasharray="7 4" class="rt"/><path d="${blob(x,y,r0+16,i+t*7)}" fill="url(#hz)"/><text x="${x}" y="${y-r0-20}" font-size="11" fill="#ffd0d4" text-anchor="middle" font-weight="700" stroke="#021" stroke-width="3" paint-order="stroke">⛔ DANGER AREA</text><text x="${x}" y="${y+r0+30}" font-size="10" fill="#fff" text-anchor="middle" stroke="#021" stroke-width="3" paint-order="stroke">${d.wave}m waves · ${d.wind}kn wind</text>`:""}
+  <text x="${x}" y="${y-2}" fill="#fff" font-size="12" text-anchor="middle" font-weight="600">${z.n}</text><text x="${x}" y="${y+13}" fill="#fff" font-size="12" text-anchor="middle">${d.p}% 🐟</text></g>`;
+});H.forEach((n,i)=>{const [hx,hy]=hp(i);s+=`<circle cx="${hx}" cy="${hy}" r="5" fill="#ffc857" stroke="#fff"/><text x="${hx+9}" y="${hy-5}" font-size="10" fill="#fff" opacity=".85">⚓ ${n}</text>`});
+ const cnt={},tx='font-weight="600" stroke="#021" stroke-width="3" paint-order="stroke"';
+ Q.forEach((q,z)=>q.forEach(b=>{const r=route(b.h,z),[x,y]=hp(b.h);cnt[b.h]=(cnt[b.h]||0)+1;
+  s+=`<path d="${r.path}" stroke="#ffc857" stroke-width="1.8" stroke-dasharray="2 5" fill="none" opacity=".7"/><text x="${x+9}" y="${y+4+cnt[b.h]*12}" font-size="11" fill="#ffc857" ${tx}>🛥 ${b.n}</text>`}));
+ sea.forEach(b=>{const r=route(b.h,b.z),dg=D(b.z,t).st=="danger";
+  if(r.det)s+=`<path d="M${r.A}L${r.B}" stroke="#ff4d5e" stroke-width="1.5" stroke-dasharray="3 5" fill="none" opacity=".8"/>`;
+  s+=`<path d="${r.path}" stroke="${dg?'#ff4d5e':'#2de2c8'}" stroke-width="3" stroke-dasharray="8 5" fill="none"/><g><text font-size="22" text-anchor="middle" y="6">⛵</text><text y="-14" font-size="11" fill="#fff" text-anchor="middle" ${tx}>${b.n}</text><animateMotion dur="${Math.max(9,r.d*.2)}s" repeatCount="indefinite" path="${r.path}"/></g>`});
+ $(id).innerHTML=s}
+function rts(){const all=[...sea.map(b=>({...b,s:1})),...Q.flatMap((q,z)=>q.map(b=>({...b,z})))];
+ $("rt").innerHTML=all.length?all.map(b=>{const r=route(b.h,b.z);return`<div class="li" style="flex-wrap:wrap"><b>${b.s?'⛵':'🛥'} ${b.n}</b> ${H[b.h]} → ${Z[b.z].n}<span style="margin-left:auto;color:var(--mu)">📏 ${r.d.toFixed(0)} nm &nbsp; ⏱ ${eta(r.d)} &nbsp; ⛽ ${Math.round(r.d*1.6)} L</span><span class="chip ${r.det?'caution':'safe'}">${r.det?'🔀 Safe detour around '+r.det.join(', ')+' (+'+Math.round((r.d/r.dd-1)*100)+'%)':'✅ Fastest route clear'}</span></div>`}).join(""):'<p class="sub">Add and launch boats to see their fastest safe routes.</p>'}
+function info(){const z=Z[sel],d=D(sel,t);
+ $("zinfo").innerHTML=`<div class="row"><h3>📍 ${z.n} Zone</h3><span class="chip ${d.st}">${lab[d.st]}</span></div><p class="sub">${T[t]} hrs</p>
+ <div class="row"><span>Fish probability</span><b>${d.p}%</b></div><div class="bar"><i style="width:${d.p}%"></i></div>
+ <div class="stat"><div><b>${d.sst}°C</b>SST</div><div><b>${d.chl}</b>Chlorophyll</div><div><b>${d.wind}kn</b>Wind ${d.dir}</div><div><b>${d.wave}m</b>Waves</div></div>
+ <p style="margin:12px 0;font-size:14px">Top catch: <b>${d.sp[0].s}</b>, ${d.sp[1].s}</p>
+ <p style="font-size:13px;color:var(--mu)">⛵ Boats at sea here: <b style="color:#fff">${sea.filter(b=>b.z==sel).length}</b> &nbsp; ⚓ Waiting: <b style="color:#fff">${Q[sel].length}</b></p>
+ <button class="btn" style="margin-top:14px" onclick="$('bz').value=sel;$('bh').value=zh[sel];go(3);render()">Add boat to this zone →</button>`}
+function fish(){const d=D(sel,t);$("fz").textContent=`🎣 ${Z[sel].n} — ${T[t]}`;
+ $("fsp").innerHTML=d.sp.map(x=>`<div class="row"><span>${x.s}</span><b>${x.v}%</b></div><div class="bar"><i style="width:${x.v}%"></i></div>`).join("");
+ $("fst").innerHTML=`<div><b>${d.sst}°C</b>Sea temp</div><div><b>${d.chl}</b>mg/m³ Chl</div><div><b>${d.cur}kn</b>Current</div><div><b>${d.p}%</b>Fish score</div>`;
+ const bt=T.map((x,i)=>({x,p:D(sel,i).p})).sort((a,b)=>b.p-a.p)[0];
+ $("best").innerHTML=`<span class="chip safe">${bt.x} hrs — ${bt.p}%</span>`;
+ const f=Math.round(d.p*.45);$("fuel").style.width=f+"%";$("fuelt").textContent=`~${f}% less fuel`}
+function queue(){rts();lg();$("qz").textContent=Z[+$("bz").value].n;const q=Q[+$("bz").value];
+ $("q").innerHTML=q.length?q.map((b,i)=>`<div class="li"><span class="no">${i+1}</span>${b.n}&nbsp;<small style="color:var(--mu)">from ${H[b.h]}</small><button class="x" onclick="delQ(${+$("bz").value},${i})">✖</button></div>`).join(""):'<p class="sub">No boats waiting. Add one!</p>';
+ $("sea").innerHTML=sea.length?sea.map((b,i)=>`<div class="li">⛵ <b>${b.n}</b> → ${Z[b.z].n} <span class="chip ${D(b.z,t).st}" style="margin-left:auto">${lab[D(b.z,t).st]}</span><button class="x" style="margin-left:0" onclick="delSea(${i})">✖</button></div>`).join(""):'<p class="sub">No boats at sea yet.</p>'}
+function wx(){$("wx").innerHTML=Z.map((z,i)=>{const d=D(i,t);return`<div class="card" style="border-color:${d.st=='danger'?'var(--dg)':'#ffffff18'}"><div class="row"><b>${z.n}</b><span class="chip ${d.st}">${lab[d.st]}</span></div>
+ <div class="stat"><div><b>${d.wind}kn</b>Wind</div><div><b>${d.wave}m</b>Waves</div><div><b>${d.cur}kn</b>Current</div><div><b>${d.sst}°</b>SST</div></div>
+ <p class="sub" style="margin:10px 0 0">${d.st=='danger'?'⛔ Do not venture. Return to shore.':d.st=='caution'?'⚠ Rough seas. Stay close to the coast.':'✅ Good conditions for fishing.'}</p></div>`}).join("");
+ const al=sea.filter(b=>D(b.z,t).st=="danger");
+ $("alerts").innerHTML=al.map(b=>`<div class="alert">🚨 <b>WARNING — ${b.n}</b>: high waves &amp; wind in ${Z[b.z].n} zone. Return to shore immediately!</div>`).join("");al.forEach(b=>{const k=b.n+"|"+b.z+"|"+t;if(!seen.has(k)){seen.add(k);AL.push({m:`${b.n} in ${Z[b.z].n} zone – ${D(b.z,t).wave}m waves, ${D(b.z,t).wind}kn wind`})}});wq();return al}
+function render(warn){pills();map("map");map("map2");info();fish();queue();const al=wx();if(warn&&al.length)toast(`🚨 ${al.length} boat(s) in danger zone: ${al.map(b=>b.n).join(", ")}`)}
+function addBoat(){const n=$("bn").value.trim();if(!n)return toast("Enter a boat name");const z=+$("bz").value;const h=+$("bh").value;const q=Q[z],p=parseInt($("bp").value);q.splice(p>=1&&p<=q.length?p-1:q.length,0,{n,h});hist.push({a:"add",z,n,h});$("bn").value="";$("bp").value="";render();
+ if(D(z,t).st=="danger")toast("⚠ "+Z[z].n+" is a danger zone right now!")}
+function launch(){const z=+$("bz").value;if(!Q[z].length)return toast("No boats waiting in this zone");const q=Q[z].shift(),n=q.n,r=route(q.h,z);sea.push({n,z,h:q.h});hist.push({a:"go",z,n,h:q.h});toast(`🧭 ${n}: ${H[q.h]} → ${Z[z].n} • ${r.d.toFixed(0)} nm • ETA ${eta(r.d)}${r.det?" • detour avoids danger zone":""}`);render(true)}
+function delQ(z,i){const [b]=Q[z].splice(i,1);hist.push({a:"dq",z,b,i});render()}
+function delSea(i){const [b]=sea.splice(i,1);hist.push({a:"ds",b,i});render();toast("⚓ "+b.n+" recalled to harbour")}
+function recall(){if(!sea.length)return toast("No boats at sea to recall");const b=sea.pop();Q[b.z].unshift({n:b.n,h:b.h});hist.push({a:"rc",b});toast("📡 "+b.n+" called back to "+H[b.h]);render()}
+function lg(){const d=l=>l.a=="add"?`➕ ${l.n} added to ${Z[l.z].n}`:l.a=="go"?`🚀 ${l.n} launched`:l.a=="dq"?`✖ ${l.b.n} removed from line`:l.a=="ds"?`⚓ ${l.b.n} called back`:`📡 ${l.b.n} recalled`;
+ $("lg").innerHTML=hist.length?hist.slice(-6).reverse().map((l,i)=>`<div class="li" style="opacity:${1-i*.13}">${d(l)}${i==0?' <span class="chip safe" style="margin-left:auto">LATEST</span>':''}</div>`).join(""):'<p class="sub">Your actions will appear here.</p>'}
+const AL=[],seen=new Set();
+function ack(){if(!AL.length)return toast("No pending warnings");const a=AL.shift();toast("✔ Acknowledged: "+a.m);wq()}
+function wq(){$("wq").innerHTML=AL.length?AL.map((a,i)=>`<div class="li"><span class="no">${i+1}</span>${a.m}${i==0?' <span class="chip danger" style="margin-left:auto">NEXT</span>':''}</div>`).join(""):'<p class="sub">✅ All clear – no pending warnings.</p>'}
+function undo(){const l=hist.pop();if(!l)return toast("Nothing to undo");
+ if(l.a=="add"){const i=Q[l.z].findLastIndex(x=>x.n==l.n);if(i>-1)Q[l.z].splice(i,1)}
+ else if(l.a=="dq")Q[l.z].splice(l.i,0,l.b);else if(l.a=="ds")sea.splice(l.i,0,l.b);else if(l.a=="rc"){const i=Q[l.b.z].findIndex(x=>x.n==l.b.n);if(i>-1)Q[l.b.z].splice(i,1);sea.push(l.b)}
+ else{const i=sea.findIndex(b=>b.n==l.n&&b.z==l.z);if(i>-1)sea.splice(i,1);Q[l.z].unshift({n:l.n,h:l.h})}render()}
+$("bz").innerHTML=Z.map((z,i)=>`<option value="${i}">${z.n}</option>`).join("");$("bh").innerHTML=H.map((z,i)=>`<option value="${i}">${z}</option>`).join("");$("bz").onchange=()=>{$("bh").value=zh[+$("bz").value];queue()};
+document.onkeydown=e=>{if(e.target.tagName=="INPUT")return;if(e.key=="ArrowRight")go(cur+1);if(e.key=="ArrowLeft")go(cur-1)};
+dots();render();
+</script></body></html>
